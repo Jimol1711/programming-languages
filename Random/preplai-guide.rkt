@@ -20,4 +20,7 @@
   (cons x y))
 
 ; retorna elemento aleatorio de l
-(define list-pick-random 1)
+(define (list-pick-random l)
+  (define k (length l))
+  (define rand (random k))
+  (list-ref l rand))
