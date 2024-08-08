@@ -11,25 +11,26 @@
 
 ; chooses random element between x and y
 (define (pick-random x y)
-  (define rand (random))
-  (if (< rand 1/2)
-      x y))
+  (let ([rand (random)])
+     (if (< rand 1/2)
+      x y)))
 
 ; sums 1 to each element on pair p
 (define (pair-add1 p)
-  (define x (+ (car p) 1))
-  (define y (+ (cdr p) 1))
-  (cons x y))
+  (let* ([x (+ (car p) 1)]
+         [y (+ (cdr p) 1)])
+    (cons x y)))
 
 ; returns random element from l
 (define (list-pick-random l)
-  (define rand (random (length l)))
-  (list-ref l rand))
+  (let* ([rand (random (length l))]
+         [index (list-ref l rand)])
+    (index)))
 
 ; switches random value on v with given x
 (define (vector-set-random! v x)
-  (define rand (random (vector-length v)))
-  (vector-set! v rand x))
+  (let ([rand (random (vector-length v))])
+  (vector-set! v rand x)))
 
 ; different lists to try iterations, filtering and finding
 (define iter-list (list 1 2 3 4))
@@ -58,18 +59,36 @@
 ; filter
 (filter negative? filter-list)
 
-; remove and remove* (there's versions where the procedure is a defined one)
+; remove and remove* (there's versions where the procedure is a defined one like eq?)
 (remove 3 filter-list <)
 (remove* '(2) filter-list <)
 
 ; returns list of elements of lst that do not meet pred
 (define (reject lst pred)
-  (foldl pred
-         '()
-         lst)) ; NO TERMINADO
+  (let* ([lst-inverted (foldl (lambda (x acc)
+           (if (pred x)
+           acc
+           (cons x acc)))
+         '() lst)]
+         [lst-not-inverted (foldl (lambda (x empty-list)
+                                    (cons x empty-list))
+         '() lst-inverted)])
+    lst-not-inverted))
 
 ; Example usage:
 (define lst '(1 2 3 4 5 6))
-(define pred even?)
+(define pred1 even?)
+(define pred2 odd?)
 
-(reject lst pred) ; => '(1 3 5)
+(reject lst pred1) ; => '(1 3 5)
+(reject lst pred2) ; => '(2 4 6)
+
+; my-max
+(define (my-max a b)
+  (cond [(> a b) a]
+        [(= a b) (printf "son iguales ~a " a) a]
+        [else b]))
+
+; pick-random-in-interval
+(define (pick-random-in-interval a b)
+  (let)) ; NO TERMINADO
