@@ -100,3 +100,18 @@
 
 (test (<= 5 (pick-random-in-interval 5 10)) #t)
 (test (< (pick-random-in-interval 5 10) 10) #t)
+
+; 1.
+(define (negate p)
+  (lambda (x) (not (p x))))
+
+; 2.
+
+; 3.
+(define (apply-twice f)
+  (lambda (x) (f (f x))))
+
+(define (apply-twice2 f x)
+  (f (f x)))
+(define (apply-twice-2 f x y)
+  (f (f x y) (f x y )))
