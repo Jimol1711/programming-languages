@@ -43,9 +43,8 @@
 (define (lista_impares n)
   (cond [(< n 0) (error "error largo negativo")]
         [(zero? n) '()]
-        [else (append (lista_impares (- n 1) (list (- (* 2 n)))))]
-        ))
+        [else (append (lista_impares (- n 1)) (list (- (* 2 n) 1)))]))
 
-(test (lista_impares 3) '(1 3 5))
 (test (lista_impares 0) '())
 (test/exn (lista_impares -1) "error largo negativo")
+(test (lista_impares 3) '(1 3 5))

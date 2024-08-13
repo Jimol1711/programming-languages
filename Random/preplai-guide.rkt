@@ -1,4 +1,4 @@
-#lang slideshow
+#lang play
 
 ; declaring to variables locally and returning the maximum one
 (let ([x 4]
@@ -80,8 +80,8 @@
 (define pred1 even?)
 (define pred2 odd?)
 
-(reject lst pred1) ; => '(1 3 5)
-(reject lst pred2) ; => '(2 4 6)
+(test (reject lst pred1) '(1 3 5))
+(test (reject lst pred2) '(2 4 6))
 
 ; my-max
 (define (my-max a b)
@@ -89,6 +89,14 @@
         [(= a b) (printf "son iguales ~a " a) a]
         [else b]))
 
+(test (my-max 1 2) 2)
+(test (my-max 2 1) 2)
+(test (my-max 1 1) 1)
+
 ; pick-random-in-interval
 (define (pick-random-in-interval a b)
-  (let)) ; NO TERMINADO
+  (let ([rango (- b a)])
+    (+ (* (random) rango) a)))
+
+(test (<= 5 (pick-random-in-interval 5 10)) #t)
+(test (< (pick-random-in-interval 5 10) 10) #t)
