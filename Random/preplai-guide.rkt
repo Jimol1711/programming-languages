@@ -203,7 +203,7 @@
 (test (my-map even? '(1 2 3 4)) '(#f #t #f #t))
 
 ; my-foldl :: Proc Init ListAny -> Any
-
+; input lists is traversed from left to right and proc is applied using the return value of the last operation as argument
 (define (my-foldl f init lst)
   (match lst
     [(list) init]
@@ -211,3 +211,37 @@
 
 (test (my-foldl cons '() '(1 2 3 4)) '((((() . 1) . 2) . 3) . 4))
 (test (my-foldl + 0 '(1 2 3 4)) 10)
+
+; sum-bt :: BinTree -> Number
+; sums the elements of the binary tree bt
+(define (sum-bt bt)
+  (match bt
+   [(list val left-bt right-bt) (+ val (+ (sum-bt left-bt) (sum-bt right-bt)))]
+   [(list val side-bt) (+ val (sum-bt side-bt))]
+   [val val]))
+
+(test (sum-bt '(1 (2 3 4) (5 (6 7 8) 9))) 45)
+(test (sum-bt '(3 4)) 7)
+(test (sum-bt 4) 4)
+
+; max-bt :: BinTree -> Number
+; returns the maximum value on bt
+(define (max-bt bt)
+  (match bt
+   [(list val left-bt right-bt) (max (max-bt left-bt) (max-bt right-bt))]
+   [(list val side-bt) (max val (max-bt side-bt))]
+   [val val]))
+
+(test (max-bt '(1 (2 3 4) (5 (6 7 8) 9))) 9)
+(test (max-bt 50) 50)
+(test (max-bt '(3 4)) 4)
+
+; map-bt :: BinTree Proc -> Any
+; maps bt by performing proc on it's elements
+(define (map-bt bt proc)
+  (match bt
+    [(list val left-bt right-bt) (list (proc val) (map-bt left-bt) (map-bt right-bt))]
+    [(list val side-bt) (list (proc val) (map-bt side-bt))]
+    [val (proc val)]))
+
+(test (map-bt '(1 (2 3 4) (5 (6 7 8) 9)) (lambda (number) (+ 1 number))) '(2 (3 4 5) (6 (7 8 9) 10)))
