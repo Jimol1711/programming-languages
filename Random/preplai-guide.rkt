@@ -240,8 +240,9 @@
 ; maps bt by performing proc on it's elements
 (define (map-bt bt proc)
   (match bt
-    [(list val left-bt right-bt) (list (proc val) (map-bt left-bt) (map-bt right-bt))]
-    [(list val side-bt) (list (proc val) (map-bt side-bt))]
+    [(list val left-bt right-bt) (list (proc val) (map-bt left-bt proc) (map-bt right-bt proc))]
+    [(list val side-bt) (list (proc val) (map-bt side-bt proc))]
     [val (proc val)]))
 
-(test (map-bt '(1 (2 3 4) (5 (6 7 8) 9)) (lambda (number) (+ 1 number))) '(2 (3 4 5) (6 (7 8 9) 10)))
+(test (map-bt '(1 (2 3 4) (5 (6 7 8) 9)) (λ (number) (+ 1 number))) '(2 (3 4 5) (6 (7 8 9) 10)))
+(test (map-bt '(1 2) even?) '(#f #t))
