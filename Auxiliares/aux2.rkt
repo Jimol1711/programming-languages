@@ -43,6 +43,8 @@
         ))
 
 (test (prom_edad '("10" #f "40" "10" #f)) 20)
+(test (prom_edad (list "20")) 20)
+(test/exn (prom_edad (list  #f #f))"full of trash")
 
 ; (b)
 (define (string_or_list element)
@@ -54,13 +56,17 @@
   (define clean_list (filter (λ (x) (not (boolean? x))) lst))
   (if (empty? clean_list)
       (error "full of trash")
-      (let* ([len (length clean_list)]
-             [numbers_list (map string->number clean_list)]
-             [sum_of_lst (foldl + 0 numbers_list)])
-        (/ sum_of_lst len))
-        ))
+      (let ([len (length clean_list)]
+            [sum_total (foldl + 0 (map string_or_list clean_list))])
+      (/ sum_total len))
+  ))
 
-(test (calcular_prom_rec ( list "10" ( list "10" #f "40" "10" #f) "40" "10" #f)) 20)
+(test (calcular_prom_rec (list "10" #f "40" "10" #f)) 20)
+(test (calcular_prom_rec (list "20")) 20)
+(test/exn (calcular_prom_rec (list  #f #f))"full of trash")
+(test (calcular_prom_rec  (list "10" (list "10" #f "40" "10" #f)  "40" "10" #f)) 20)
+(test (calcular_prom_rec (list (list "10" #f "40" "10" #f))) 20)
+(test/exn (calcular_prom_rec (list (list #f #f) #f)) "full of trash")
 
 ; P3
 ; (a)
@@ -74,10 +80,14 @@
   (curry-aux-n n f '()))
 
 (test (((curry-n 2 +) 1) 2) (+ 1 2))
+(test (((curry-n 2 -) 1) 2) (- 1 2))
 
 ; (b)
 (define (uncurry-2 f)
-  (λ (x y)
-    ((f x) y)))
+  (λ (x y) ((f x) y)))
 
-; (test ((uncurry-2 curry)))
+
+(define curry-sum (λ (a) (λ (b) (+ a b))))
+(define curry-res (λ (a) (λ (b) (- a b))))
+(test ((uncurry-2 curry-sum) 1 2) ((curry-sum 1) 2))
+(test ((uncurry-2 curry-res) 1 2) ((curry-res 1) 2))
