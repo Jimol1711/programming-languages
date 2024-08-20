@@ -246,3 +246,9 @@
 
 (test (map-bt '(1 (2 3 4) (5 (6 7 8) 9)) (λ (number) (+ 1 number))) '(2 (3 4 5) (6 (7 8 9) 10)))
 (test (map-bt '(1 2) even?) '(#f #t))
+
+; foldlf-bt :: Proc Any Bintree -> Any
+; performs proc with foldl procedure over bt TERMINAR
+;; (define (foldl proc init bt)
+;;   (match bt
+;;     [(list val left-bt right-bt) (foldl proc init (cons (foldl-bt proc init left-bt) (foldl-bt proc init right-bt)))]))
