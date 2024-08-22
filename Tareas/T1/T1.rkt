@@ -49,21 +49,22 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 
 ;; Parte e)
 ;; eval2 :: CFraction -> Rational
+;; Returns the rational value resulting of evaluating a given c-fraction
 (define eval2
   (fold-cfraction
-   (lambda (value) value)
-   (lambda (a b d) (if (= d 0)
-                       (error "zero division")
-                       (+ a (/ b d))))))
+   identity
+   (λ (a b d) (if (= d 0)
+                  (error "zero division")
+                  (+ a (/ b d))))))
 
 ;; degree2 ::  CFraction -> Integer
+;; Returns the degree of a given c-fraction
 (define degree2
   (fold-cfraction
-   (lambda (value) 0)
-   (lambda (a b d) (if (= d 0)
-                       (error "zero division")
-                       (+ 1 d)))))
-
+   (λ (value) 0)
+   (λ (a b d) (if (= d 0)
+                  (error "zero division")
+                  (+ 1 d)))))
 
 ;; Parte f)
 ;; mysterious-cf :: Integer -> CFraction

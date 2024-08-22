@@ -1,0 +1,6 @@
+#lang play
+
+(deftype Expr
+  (sum n)
+  (sum l r)
+  (sub l r))
