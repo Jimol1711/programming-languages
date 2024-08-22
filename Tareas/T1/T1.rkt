@@ -40,15 +40,29 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 
 ;; Parte d)
 ;; fold-cfraction :: (Integer -> A) (Integer Integer A -> A) -> (CFraction -> A)
-;; Captures the recursion schema of CFraction
+;; Captures the recursive scheme of CFraction
 (define (fold-cfraction simp rec)
-  1)
+  (λ (c-fraction)
+    (match c-fraction
+      [(simple value) (simp value)]
+      [(compound a b d) (rec a b ((fold-cfraction simp rec) d))])))
 
 ;; Parte e)
 ;; eval2 :: CFraction -> Rational
-
+(define eval2
+  (fold-cfraction
+   (lambda (value) value)
+   (lambda (a b d) (if (= d 0)
+                       (error "zero division")
+                       (+ a (/ b d))))))
 
 ;; degree2 ::  CFraction -> Integer
+(define degree2
+  (fold-cfraction
+   (lambda (value) 0)
+   (lambda (a b d) (if (= d 0)
+                       (error "zero division")
+                       (+ 1 d)))))
 
 
 ;; Parte f)
