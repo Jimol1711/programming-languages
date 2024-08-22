@@ -1,4 +1,5 @@
 #lang play
+(print-only-errors #t)
 
 ; declaring to variables locally and returning the maximum one
 (let ([x 4]

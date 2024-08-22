@@ -24,15 +24,25 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 (define (eval c-fraction)
   (match c-fraction
     [(simple value) value]
-    [(compound a b d) (+ a (/ b (eval d)))]))
+    [(compound a b d) (if (= (eval d) 0)
+                          (error "zero division")
+                          (+ a (/ b (eval d))))]))
 
 ;; Parte c)
 ;; degree ::  CFraction -> Integer
-
+;; Returns the degree of c-fraction
+(define (degree c-fraction)
+  (match c-fraction
+    [(simple value) 0]
+    [(compound a b d) (if (= (eval d) 0)
+                          (error "zero division")
+                          (+ 1 (degree d)))]))
 
 ;; Parte d)
 ;; fold-cfraction :: (Integer -> A) (Integer Integer A -> A) -> (CFraction -> A)
-
+;; Captures the recursion schema of CFraction
+(define (fold-cfraction simp rec)
+  1)
 
 ;; Parte e)
 ;; eval2 :: CFraction -> Rational
