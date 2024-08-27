@@ -40,7 +40,9 @@
     [n #:when (number? n) (num n)]
     [(list '+ l r) (add (parse l) (parse r))]
     [(list '- l r) (sub (parse l) (parse r))]
-    [(list 'if0 c l r) (if0 (parse c) (parse l) (parse r))]))
+    [(list 'if0 c l r) (if0 (parse c)
+                            (parse l)
+                            (parse r))]))
 
 ;; run :: s-expr -> number
 ;; Reduces a given program into it's concrete syntax
