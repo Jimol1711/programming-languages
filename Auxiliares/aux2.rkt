@@ -86,7 +86,6 @@
 (define (uncurry-2 f)
   (λ (x y) ((f x) y)))
 
-
 (define curry-sum (λ (a) (λ (b) (+ a b))))
 (define curry-res (λ (a) (λ (b) (- a b))))
 (test ((uncurry-2 curry-sum) 1 2) ((curry-sum 1) 2))

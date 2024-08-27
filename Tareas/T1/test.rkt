@@ -38,4 +38,11 @@
 (test (degree2 (compound 3 1 (compound 4 1 (compound 12 1 (simple 4))))) 3)
 (test (degree2 (compound -2 5 (compound 5 -7 (compound 7 0 (simple 9))))) 3)
 (test (degree2 (compound 0 2 (compound 5 0 (compound 1 -6 (compound 2 5 (compound -5 7 (compound 7 8 (simple 9)))))))) 6)
-(test/exn (degree2 (compound 5 1 (simple 0))) "zero division")
+(test (degree2 (compound -4 -8 (compound 0 2 (compound 5 0 (compound 1 -6 (compound 2 5 (compound -5 7 (compound 7 8 (simple 9))))))))) 7)
+
+;; tests for mysterious-cf
+(test/exn (mysterious-cf -1) "Error: argumento negativo")
+(test (mysterious-cf 0) (simple 6))
+(test (mysterious-cf 2) (compound 6 (sqr 1) (compound 6 (sqr 3)(simple 6))))
+(test (mysterious-cf 5) (compound 6 (sqr 1) (compound 6 (sqr 3)(compound 6 (sqr 5)(compound 6 (sqr 7)(compound 6 (sqr 9)(simple 6)))))))
+(test (mysterious-cf 8) (compound 6 (sqr 1) (compound 6 (sqr 3)(compound 6 (sqr 5)(compound 6 (sqr 7)(compound 6 (sqr 9)(compound 6 (sqr 11) (compound 6 (sqr 13)(compound 6 (sqr 15)(simple 6))))))))))
