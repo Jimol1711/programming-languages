@@ -67,24 +67,24 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; Parte f)
 ;; mysterious-cf :: Integer -> CFraction
 ;; Generates a mysterious continous fractions
-;; (define (mysterious-cf value)
-;;   (if (> 0 value)
-;;       (error "Error: argumento negativo")
-;;       (match value
-;;         [0 (simple 6)]
-;;         [value (compound 6 (sqr (value - 2))(mysterious-cf (value - 2)))])))
+(define (mysterious-cf value)
+  (if (> 0 value)
+      (error "Error: argumento negativo")
+      (match value
+        [0 (simple 6)]
+        [v (compound 6 (sqr (- (* 2 v) 1))(mysterious-cf (- v 1)))])))
 
 ;; (define (mysterious-cf value)
 ;;   (cond [(< value 0) (error "Error: argumento negativo")]
 ;;         [(zero? value) (simple 6)]
 ;;         [else (compound 6 (sqr (- (* 2 (- value 1)) 1))(mysterious-cf (- value 1)))]))
 
-(define (mysterious-cf value)
-  (define (helper current-value)
-    (if (= current-value value)
-        (simple 6)
-        (compound 6 (sqr (+ (* 2 current-value) 1)) (helper (+ current-value 1)))))
-  (helper 0))
+;; (define (mysterious-cf value)
+;;   (define (helper current-value)
+;;     (if (= current-value value)
+;;         (simple 6)
+;;         (compound 6 (sqr (+ (* 2 current-value) 1)) (helper (+ current-value 1)))))
+;;   (helper 0))
 
 (simple 6)
 (compound 6 (sqr 1) (simple 6))
