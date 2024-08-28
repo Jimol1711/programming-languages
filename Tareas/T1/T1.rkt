@@ -104,4 +104,9 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; rac-to-cf :: Rational -> CFraction
 ;; Transforms a non-negative rational number into it's CFraction representation
 (define (rac-to-cf r)
-  (void))
+  (let* ([i (floor r)]
+        [f (- r i)])
+    (if (zero? f)
+        (simple r)
+        (let ([recip (/ 1 f)])
+             (compound r (rac-to-cf recip))))))
