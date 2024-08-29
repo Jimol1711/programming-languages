@@ -26,7 +26,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 (define (eval c-fraction)
   (match c-fraction
     [(simple value) value]
-    [(compound a b d) (if (= (eval d) 0)
+    [(compound a b d) (if (zero? (eval d))
                           (error "zero division")
                           (+ a (/ b (eval d))))]))
 
@@ -37,7 +37,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 (define (degree c-fraction)
   (match c-fraction
     [(simple value) 0]
-    [(compound a b d) (if (= (eval d) 0)
+    [(compound a b d) (if (zero? (eval d))
                           (error "zero division")
                           (+ 1 (degree d)))]))
 
@@ -58,7 +58,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 (define eval2
   (fold-cfraction
    identity
-   (λ (a b d) (if (= d 0)
+   (λ (a b d) (if (zero? d)
                   (error "zero division")
                   (+ a (/ b d))))))
 
@@ -87,13 +87,15 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; Constructs a list of integers between two given integers
 (define (from-to i j)
   (if (> i j)
-      (from-to j i)
+      (error "Error: i debe ser menor o igual a j")
       (range i j)))
 
 ;; mysterious-list :: Integer -> ListOf Float
 ;; Returns a list such that the ith element is the difference between the evaluation of (mysterious-cf i) and 3
 (define (mysterious-list n)
-      (map (λ (x) (- (fl (eval (mysterious-cf x))) 3)) (from-to 0 (+ n 1))))
+  (if (zero? n)
+      '()
+      (map (λ (x) (- (fl (eval (mysterious-cf x))) 3)) (map (λ (x) (+ x 1)) (from-to 0 n)))))
 
 ;; A que numero tiende (mysterious-cf k) cuando k tiende a infinito?
 
@@ -104,9 +106,10 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; rac-to-cf :: Rational -> CFraction
 ;; Transforms a non-negative rational number into it's CFraction representation
 (define (rac-to-cf r)
-  (let* ([i (floor r)]
-        [f (- r i)])
+  (let* ([num (inexact->exact r)]
+         [i (floor num)]
+         [f (- num i)])
     (if (zero? f)
-        (simple r)
+        (simple i)
         (let ([recip (/ 1 f)])
-             (compound r (rac-to-cf recip))))))
+             (compound i 1 (rac-to-cf recip))))))
