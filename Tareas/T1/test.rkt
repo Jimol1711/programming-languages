@@ -61,3 +61,4 @@
 (test (rac-to-cf 0) (simple 0))
 (test (rac-to-cf 4.0) (simple 4))
 (test (rac-to-cf 59/13) (compound 4 7 (simple 13)))
+(test (rac-to-cf (+ 3 (/ 5 (+ 6 (/ 7 (+ 12 (/ 4 9))))))) (compound 3 5 (compound 6 7 (compound 12 4 (simple 9)))))
