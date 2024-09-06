@@ -27,7 +27,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
   (match c-fraction
     [(simple value) value]
     [(compound a b d) (if (zero? (eval d))
-                          (error "zero division")
+                          (error "Error: zero division")
                           (+ a (/ b (eval d))))]))
 
 ;; Parte c)
@@ -38,7 +38,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
   (match c-fraction
     [(simple value) 0]
     [(compound a b d) (if (zero? (eval d))
-                          (error "zero division")
+                          (error "Error: zero division")
                           (+ 1 (degree d)))]))
 
 ;; Parte d)
@@ -59,7 +59,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
   (fold-cfraction
    identity
    (λ (a b d) (if (zero? d)
-                  (error "zero division")
+                  (error "Error: zero division")
                   (+ a (/ b d))))))
 
 ;; degree2 ::  CFraction -> Integer
@@ -87,15 +87,18 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; Constructs a list of integers between two given integers
 (define (from-to i j)
   (if (> i j)
-      (error "Error: i debe ser menor o igual a j")
+      (error "Error: i must be less than or equal to j")
       (range i j)))
 
 ;; mysterious-list :: Integer -> ListOf Float
 ;; Returns a list such that the ith element is the difference between the evaluation of (mysterious-cf i) and 3
 (define (mysterious-list n)
-  (if (zero? n)
-      '()
-      (map (λ (x) (- (fl (eval (mysterious-cf x))) 3)) (map (λ (x) (+ x 1)) (from-to 0 n)))))
+  (if (< n 0)
+      (error "Error: negative length")
+      (if (zero? n)
+          '()
+          (map (λ (x) (- (fl (eval (mysterious-cf x))) 3)) (map (λ (x) (+ x 1)) (from-to 0 n))))
+      ))
 
 ;; A que numero tiende (mysterious-cf k) cuando k tiende a infinito?
 

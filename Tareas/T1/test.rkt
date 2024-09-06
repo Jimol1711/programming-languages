@@ -8,14 +8,14 @@
 (test (eval (simple 0)) 0)
 (test (eval (compound 5 1 (simple 23))) 116/23)
 (test (eval (compound 1 8 (compound 5 1 (simple 12)))) 157/61)
-(test/exn (eval (compound 5 1 (simple 0))) "zero division")
+(test/exn (eval (compound 5 1 (simple 0))) "Error: zero division")
 
 ;; tests for degree
 (test (degree (simple 1)) 0)
 (test (degree (compound 3 1 (compound 4 1 (compound 12 1 (simple 4))))) 3)
 (test (degree (compound -2 5 (compound 5 -7 (compound 7 0 (simple 9))))) 3)
 (test (degree (compound 0 2 (compound 5 0 (compound 1 -6 (compound 2 5 (compound -5 7 (compound 7 8 (simple 9)))))))) 6)
-(test/exn (eval (compound 5 1 (simple 0))) "zero division")
+(test/exn (eval (compound 5 1 (simple 0))) "Error: zero division")
 
 ;; tests for fold-cfraction
 ;; tested by extension on next functions
@@ -25,7 +25,7 @@
 (test (eval2 (simple 0)) 0)
 (test (eval2 (compound 5 1 (simple 23))) 116/23)
 (test (eval2 (compound 1 8 (compound 5 1 (simple 12)))) 157/61)
-(test/exn (eval2 (compound 5 1 (simple 0))) "zero division")
+(test/exn (eval2 (compound 5 1 (simple 0))) "Error: zero division")
 
 ;; tests for degree2 (same as degree)
 (test (degree2 (simple 1)) 0)
@@ -43,7 +43,7 @@
 
 ;; tests for from-to
 (test (from-to 0 3) '(0 1 2))
-(test/exn (from-to 3 0) "Error: i debe ser menor o igual a j")
+(test/exn (from-to 3 0) "Error: i must be less than or equal to j")
 (test (from-to 3 7) '(3 4 5 6))
 (test (from-to -7 3) '(-7 -6 -5 -4 -3 -2 -1 0 1 2))
 (test (from-to 2 2) '())
@@ -54,11 +54,12 @@
 (test (mysterious-list 5) '(3.166666666666667 3.1333333333333337 3.1452380952380956 3.13968253968254 3.142712842712843))
 (test (mysterious-list 15) '(3.166666666666667 3.1333333333333337 3.1452380952380956 3.13968253968254 3.142712842712843 3.140881340881341 3.142071817071817 3.141254823607765 3.141839618929402 3.141406718496502 3.1417360992606653 3.141479689004255 3.141683189207755 3.141518985595275 3.1416533941974265))
 (test (mysterious-list 20) '(3.166666666666667 3.1333333333333337 3.1452380952380956 3.13968253968254 3.142712842712843 3.140881340881341 3.142071817071817 3.141254823607765 3.141839618929402 3.141406718496502 3.1417360992606653 3.141479689004255 3.141683189207755 3.141518985595275 3.1416533941974265 3.1415419859977822 3.141635356679388 3.1415563302845726 3.1416238066678384 3.1415657346585473))
+(test/exn (mysterious-list -1) "Error: negative length")
 
 ;; tests for rac-to-cf
 (test (rac-to-cf (+ 3 49/200)) (compound 3 1 (compound 4 1 (compound 12 1 (simple 4)))))
 (test (rac-to-cf 16/3) (compound 5 1 (simple 3)))
 (test (rac-to-cf 0) (simple 0))
 (test (rac-to-cf 4.0) (simple 4))
-(test (rac-to-cf 59/13) (compound 4 7 (simple 13)))
-(test (rac-to-cf (+ 3 (/ 5 (+ 6 (/ 7 (+ 12 (/ 4 9))))))) (compound 3 5 (compound 6 7 (compound 12 4 (simple 9)))))
+(test (rac-to-cf 59/13) (compound 4 1 (compound 1 1 (compound 1 1 (simple 6)))))
+(test (rac-to-cf (+ 3 (/ 5 (+ 6 (/ 7 (+ 12 (/ 4 9))))))) (compound 3 1 (compound 1 1 (compound 3 1 (simple 5)))))
