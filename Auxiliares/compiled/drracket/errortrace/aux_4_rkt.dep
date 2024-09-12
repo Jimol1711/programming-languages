@@ -1,1 +1,0 @@
-("8.13" ta6nt ("15908472b40badb844d241f2e921ea85549c59de" . "73b0a8a93b6d2e5bf921b9231c7ddffe897f1bb9") #"C:\\repos\\Lenguajes\\Auxiliares\\base_aux4.rkt" (collects #"drracket" #"private" #"drracket-errortrace-key.rkt") (collects #"play" #"lang" #"reader.rkt") (collects #"play" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
