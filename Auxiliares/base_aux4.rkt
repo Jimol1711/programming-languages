@@ -2,6 +2,7 @@
 
 (print-only-errors #t)
 
+;; P1)
 ;;sintaxis concreta
 
 #|
@@ -64,7 +65,7 @@
     [(list 'or l r) (lor (parse l) (parse r))]
     [(list 'not e) (neg (parse e))]
     [(list '< l r) (less (parse l) (parse r))]
-    [(list 'if cond if-res else-res) (ifp (parse cond) (parse if-res) (else-res))]
+    [(list 'if cond if-res else-res) (ifp (parse cond) (parse if-res) (parse else-res))]
     ))
 
 ;; --- Calculadora------
@@ -88,6 +89,7 @@
     [(ifp cond if-res else-res) (if (calc cond) (calc if-res) (calc else-res))]
     ))
 
+;; P2)
 ;; --- Chequeo de tipos ---
 
 #|
@@ -119,11 +121,12 @@
                         (error "Static type error: expected bool, found:" (typecheck r)))
                     (error "Static type error: expected bool, found:" (typecheck l)))]))
 
-
 ;; run :: ListOf[Symbol] -> Number/Boolean
 ;; el main del programa
 (define (run prog)
-  (calc (typecheck (parse prog))))
+  (def parsed-prog (parse prog))
+  (def tipo_prog (typecheck parsed-prog))
+  (calc parsed-prog))
 
 
 

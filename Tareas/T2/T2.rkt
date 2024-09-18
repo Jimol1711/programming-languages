@@ -1,5 +1,7 @@
 #lang play
 
+;; Juan Ignacio Molina - Sección 1
+
 #|
 
 Hizo Ud uso de la whiteboard policy: NO
@@ -10,7 +12,7 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 |#
 
 ;;------------ ;;
-;;==== P2 ==== ;;
+;;==== P1 ==== ;;
 ;;------------ ;;
 
 
@@ -20,16 +22,24 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 
 
 #|
+Abstract syntax of propositions:
+
 <prop> ::= (tt)
          | (ff)
-         | ...
+         | (p-not <prop>)
+         | (p-and (listof <prop>))
+         | (p-or (listof <prop>))
+         | (p-id <sym>)
+         | (p-where <prop> <sym> <prop>)
 |#
-
 (deftype Prop
   (tt)
   (ff)
-  ; ...
-  )
+  (p-not Prop)
+  (p-and (props))
+  (p-or (props))
+  (p-id id)
+  (p-where res name value))
 
 
 ;;----- ;;
@@ -41,11 +51,31 @@ Concrete syntax of propositions:
 
 <s-prop> ::= true
           | false
-          | ...
+          | (list 'not <s-prop>)
+          | (list 'and <s-prop>+)                    
+          | (list 'or <s-prop>+)                     
+          | id                                       
+          | (list <s-prop> 'where (list id <s-prop>))
 |#
 
 ;; parse-prop : <s-prop> -> Prop
-(define (parse-prop s-expr) '???)
+;; Parser of concrete syntax of a proposition
+(define (parse-prop s-expr)
+  (match s-expr
+    ['true (tt)]
+    ['false (ff)]
+    [(list 'not p) (p-not (parse-prop p))]
+    [(list 'and elems ...)
+     (if (>= (length elems) 2)
+         (p-and (map parse-prop elems))
+         (error "parse-prop: and expects at least two operands"))]
+    [(list 'or elems ...)
+     (if (>= (length elems) 2)
+         (p-or (map parse-prop elems))
+         (error "parse-prop: or expects at least two operands"))]
+    [(? symbol? id) (p-id id)]
+    [(list expr 'where (list id expr2)) 
+     (p-where (parse-prop expr) id (parse-prop expr2))]))
 
 
 ;;----- ;;
@@ -54,13 +84,39 @@ Concrete syntax of propositions:
 
 
 #|
-<value> ::= ...
+<value> ::= (ttV)
+          | (ffV)
+          | (andV (listof <value>))
+          | (orV (listof <value>))
+          | (idV <sym>)
+          | (whereV <value> <sym> <value>)
 |#
-
-;; (deftype PValue ...)
+(deftype PValue
+  (ttV)
+  (ffV)
+  (andV (pvalues))
+  (orV (pvalues))
+  (idV sym)
+  (whereV resV nameV valueV))
 
 ;; from-Pvalue : PValue -> Prop
-(define (from-Pvalue p-value) '???)
+(define (from-Pvalue p-value)
+  (match p-value
+    [(ttV) (tt)]
+    [(ffV) (ff)]
+    [(andV values)
+     (let ([props (map from-Pvalue values)])
+       (if (< (length props) 2)
+           (error "from-Pvalue: andV expects at least two operands")
+           (p-and props)))]
+    [(orV values)
+     (let ([props (map from-Pvalue values)])
+       (if (< (length props) 2)
+           (error "from-Pvalue: orV expects at least two operands")
+           (p-or props)))]
+    [(idV id) (p-id id)]
+    [(whereV resV nameV valueV)
+     (p-where (from-Pvalue resV) nameV (from-Pvalue valueV))]))
 
 
 ;;----- ;;
