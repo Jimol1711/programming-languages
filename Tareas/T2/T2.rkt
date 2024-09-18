@@ -2,7 +2,7 @@
 
 #|
 
-Hizo Ud uso de la whiteboard policy: (Indique SI/NO)
+Hizo Ud uso de la whiteboard policy: NO
 En caso que afirmativo, indique con quién y sobre qué ejercicio:
 -
 -
