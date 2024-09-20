@@ -91,6 +91,7 @@ Concrete syntax of propositions:
           | (idV <sym>)
           | (whereV <value> <sym> <value>)
 |#
+;; Datatype to represent the values captured by the language
 (deftype PValue
   (ttV)
   (ffV)
@@ -100,6 +101,7 @@ Concrete syntax of propositions:
   (whereV resV nameV valueV))
 
 ;; from-Pvalue : PValue -> Prop
+;; Function to transform a PValue to a Prop type
 (define (from-Pvalue p-value)
   (match p-value
     [(ttV) (tt)]
@@ -125,7 +127,27 @@ Concrete syntax of propositions:
 
 
 ;; p-subst : Prop Symbol Prop -> Prop
-(define (p-subst target name substitution) '???)
+;; Substitutes a proposition for it's identifier
+(define (p-subst target name substitution)
+  (match target
+    [(tt) (tt)]
+    [(ff) (ff)]
+    [(p-id id) (if (symbol=? id name)
+               substitution
+               (p-id id))]
+    [(p-not p)
+     (p-not (p-subst p name substitution))]
+    [(p-and props)
+     (p-and (map (λ (p) (p-subst p name substitution)) props))]
+    [(p-or props)
+     (p-or (map (λ (p) (p-subst p name substitution)) props))]
+    [(p-where res id value)
+     (if (symbol=? id name)
+         (p-where res id value)
+         (p-where
+          (p-subst res name substitution)
+          id
+          (p-subst value name substitution)))]))
 
 
 ;;----- ;;
@@ -134,13 +156,42 @@ Concrete syntax of propositions:
 
 
 ;; eval-or : (Listof Prop) -> PValue
-(define (eval-or ps) '???)
+;; Implements short circuit behaviour for a list of props on an or proposition
+(define (eval-or ps)
+  (match ps
+    ['() (ffV)]
+    [(list p elems ...)
+     (match (p-eval p)
+       [(ttV) (ttV)]
+       [(ffV) (eval-or elems)])])) 
 
 ;; eval-and : (Listof Prop) -> PValue
-(define (eval-and ps) '???)
+;; Implements short circuit behaviour for a list of props on an and proposition
+(define (eval-and ps)
+  (match ps
+    ['() (ttV)]
+    [(list p elems ...)
+     (match (p-eval p)
+       [(ffV) (ffV)]
+       [(ttV) (eval-and elems)])]))
 
 ;; p-eval : Prop -> PValue
-(define (p-eval p) '???)
+;; Reduces a proposition to a PValue
+(define (p-eval p)
+  (match p
+    [(tt) (ttV)]
+    [(ff) (ffV)]
+    [(p-id id) (error 'p-eval (format "unbound identifier: ~a" id))]
+    [(p-not prop)
+     (match (p-eval prop)
+       [(ttV) (ffV)]
+       [(ffV) (ttV)])]
+    [(p-and props)
+     (eval-and props)]
+    [(p-or props)
+     (eval-or props)]
+    [(p-where res id value)
+     (p-eval (p-subst res id value))]))
 
 ;;------------ ;;
 ;;==== P2 ==== ;;
