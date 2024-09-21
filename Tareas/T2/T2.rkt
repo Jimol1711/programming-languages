@@ -201,21 +201,25 @@ Concrete syntax of propositions:
 ;; P2.a ;;
 ;;----- ;;
 
-
 #|
-<expr> ::= ...
+Abstract syntax of expressions:
+
+<expr> ::=(real <num>)
+        | (imaginary <num>)
         | (add <expr> <expr>)
         | (sub <expr> <expr>)
         | (if0 <expr> <expr> <expr>)
-        | ...
+        | (with [<sym-expr-pair>*] <expr>)
+        | (id <sym>)
 |#
 (deftype Expr
-  ; ...
+  (real r)
+  (imaginary i)
   (add l r)
   (sub l r)
   (if0 c t f)
-  ; ...
-  )
+  (with bindings body)
+  (id x))
 
 ;;----- ;;
 ;; P2.b ;;
@@ -224,16 +228,32 @@ Concrete syntax of propositions:
 #|
 Concrete syntax of expressions:
 
-<s-expr> ::= ...
-        | (+ <s-expr> <s-expr>)
-        | (- <s-expr> <s-expr>)
-        | (if0 <s-expr> <s-expr> <s-expr>)
-        | ...
+<s-expr> ::= <num>
+           | (<num> i)
+           | (+ <s-expr> <s-expr>)
+           | (- <s-expr> <s-expr>)
+           | (if0 <s-expr> <s-expr> <s-expr>)
+           | ...
 |#
 
 ;; parse : <s-expr> -> Expr
-
-(define (parse s-expr) '???)
+;; Parser of concrete syntax of an expression
+(define (parse s-expr)
+  (match s-expr
+    [(? number? n) (real n)]
+    [(list n 'i) (imaginary n)]
+    [(? symbol? x) (id x)]
+    [(list '+ l r) (add (parse l) (parse r))]
+    [(list '- l r) (sub (parse l) (parse r))]
+    [(list 'with bindings body)
+     (if (empty? bindings)
+         (error "parse: 'with' expects at least one definition")
+         (with (map (lambda (binding)
+                      (match binding
+                        [(list (? symbol? x) expr) (cons x (parse expr))]
+                        [_ (error "parse: invalid binding format in 'with'")]))
+                    bindings)
+               (parse body)))]))
 
 ;;----- ;;
 ;; P2.c ;;

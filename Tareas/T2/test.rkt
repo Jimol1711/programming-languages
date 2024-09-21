@@ -98,3 +98,28 @@
 ;;==== P2 ==== ;;
 ;;------------ ;;
 
+;; parse
+
+;; real
+(test (parse '1) (real 1))
+(test (parse '2) (real 2))
+
+;; imaginary
+(test (parse '(1 i)) (imaginary 1))
+(test (parse '(3 i)) (imaginary 3))
+
+;; add & sub
+(test (parse '(+ 1 (2 i))) (add (real 1) (imaginary 2)))
+(test (parse '(- 1 2)) (sub (real 1) (real 2)))
+(test (parse '(+ 1 2)) (add (real 1) (real 2)))
+(test (parse '(- (8 i) 2)) (sub (imaginary 8) (real 2)))
+(test (parse '(- (8 i) (+ 2 2))) (sub (imaginary 8) (add (real 2) (real 2))))
+
+;; id & local definitions
+(test (parse 'x) (id 'x))
+(test (parse '(with [(z 2)] (- z (2 i)))) (with (list (cons 'z (real 2))) (sub (id 'z) (imaginary 2))))
+(test (parse '(with [(x 1) (y 1)] (+ x y))) (with (list (cons 'x (real 1)) (cons 'y (real 1))) (add (id 'x) (id 'y))))
+
+;; no bindings/invalid binding errors
+(test/exn (parse '(with [] 1)) "parse: 'with' expects at least one definition")
+(test/exn (parse '(with [(x)] 1)) "parse: invalid binding format in 'with'")
