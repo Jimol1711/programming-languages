@@ -259,8 +259,34 @@ Concrete syntax of expressions:
 ;; P2.c ;;
 ;;----- ;;
 
+;; remove-shadow :: Symbol (Listof (Pairof Symbol Expr)) -> (Listof (Pairof Symbol Expr)) 
+;; Auxiliary function to remove a shadowed identifier from bindings
+(define (remove-shadow x bindings)
+  (filter (lambda (b) (not (eq? (car b) x))) bindings))
+
 ;; subst :: Expr Symbol Expr -> Expr
-(define (subst in what for) '???)
+;; Performs substitution of an identifier for an expression
+(define (subst in what for)
+  (match in
+    [(id x) (if (eq? x what)
+                for
+                (id x))]
+    [(real r) in]
+    [(imaginary i) in]
+    [(add l r) (add (subst l what for) (subst r what for))]
+    [(sub l r) (sub (subst l what for) (subst r what for))]
+    [(if0 c t f) (if0 (subst c what for)
+                      (subst t what for)
+                      (subst f what for))]
+    [(with bindings body)
+     (define (subst-bindings bindings)
+       (match bindings
+         [(cons (cons x expr) rest)
+          (cons (cons x (subst expr what for))
+                (subst-bindings (remove-shadow x rest)))]
+         ['() '()]))
+     (with (subst-bindings bindings)
+           (subst body what for))]))
 
 ;;----- ;;
 ;; P2.d ;;
@@ -269,25 +295,42 @@ Concrete syntax of expressions:
 #|
 <cvalue> ::= (compV <num> <num>)
 |#
-
+;; Datatype to represent complex numbers by their two components
 (deftype CValue (compV r i))
 
 ;; from-CValue :: CValue -> Expr
+;; Transforms a CValue into an expression from the language
 (define (from-CValue v)
   (match v
-    [(compV r 0) (real r)]
-    [(compV 0 i) (imaginary i)]
-    [(compV r i) (add (from-CValue r) (from-CValue i))]))
+    [(compV r i)
+     (cond
+       [(and (not (= r 0)) (not (= i 0)))
+        (add (real r) (imaginary i))]
+       [(not (= r 0)) (add (real r) (imaginary 0))]
+       [(not (= i 0)) (add (real 0) (imaginary i))]
+       [else (add (real 0) (imaginary 0))])]))
 
 ;; cmplx+ :: CValue CValue -> CValue
-(define (cmplx+ v1 v2) '???)
+;; Adds two CValues with complex numbers rules, returning the corresponding CValue
+(define (cmplx+ v1 v2)
+  (match (list (from-CValue v1) (from-CValue v2))
+    [(list (add (real r1) (imaginary i1))
+           (add (real r2) (imaginary i2)))
+     (compV (+ r1 r2) (+ i1 i2))]))
 
 ;; cmplx- :: CValue CValue -> CValue
-(define (cmplx- v1 v2) '???)
+;; Subs two CValues with complex numbers rules, returning the corresponding CValue
+(define (cmplx- v1 v2)
+  (match (list (from-CValue v1) (from-CValue v2))
+    [(list (add (real r1) (imaginary i1))
+           (add (real r2) (imaginary i2)))
+     (compV (- r1 r2) (- i1 i2))]))
 
 ;; cmplx0? :: CValue -> Boolean
-(define (cmplx0? v) '???)
-
+;; Returns true if the complex represent by the given CValue is 0, false otherwise
+(define (cmplx0? v)
+  (match (from-CValue v)
+    [(add (real r) (imaginary i)) (and (= r 0) (= i 0))]))
 
 ;;----- ;;
 ;; P2.e ;;

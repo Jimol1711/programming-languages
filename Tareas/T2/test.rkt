@@ -127,3 +127,57 @@
 ;; no bindings/invalid binding errors
 (test/exn (parse '(with [] 1)) "parse: 'with' expects at least one definition")
 (test/exn (parse '(with [(x)] 1)) "parse: invalid binding format in 'with'")
+
+;; from-CValue
+(test (from-CValue (compV 3 4)) (add (real 3) (imaginary 4)))
+(test (from-CValue (compV 5 0)) (add (real 5) (imaginary 0)))
+(test (from-CValue (compV 0 7)) (add (real 0) (imaginary 7)))
+(test (from-CValue (compV 0 0)) (add (real 0) (imaginary 0)))
+(test (from-CValue (compV -3 -7)) (add (real -3) (imaginary -7)))
+(test (from-CValue (compV 12 -10)) (add (real 12) (imaginary -10)))
+
+;; cmplx+
+(test (cmplx+ (compV 0 0) (compV 3 0)) (compV 3 0))
+(test (cmplx+ (compV 7 4) (compV 3 0)) (compV 10 4))
+(test (cmplx+ (compV 0 0) (compV 0 0)) (compV 0 0))
+(test (cmplx+ (compV -2 -1) (compV 3 1)) (compV 1 0))
+(test (cmplx+ (compV -3 2) (compV 3 0)) (compV 0 2))
+(test (cmplx+ (compV 1 2) (compV 3 4)) (compV 4 6))
+
+;; cmplx-
+(test (cmplx- (compV 0 0) (compV 3 0)) (compV -3 0))
+(test (cmplx- (compV 7 4) (compV 3 0)) (compV 4 4))
+(test (cmplx- (compV 0 0) (compV 0 0)) (compV 0 0))
+(test (cmplx- (compV -2 -1) (compV 3 -1)) (compV -5 0))
+(test (cmplx- (compV -3 2) (compV 3 0)) (compV -6 2))
+(test (cmplx- (compV 1 2) (compV 3 4)) (compV -2 -2))
+
+;; cmplx0?
+(test (cmplx0? (compV 0 6)) #f)
+(test (cmplx0? (compV 7 0)) #f)
+(test (cmplx0? (cmplx- (compV 9 8) (compV 9 8))) #t)
+(test (cmplx0? (cmplx+ (compV 23 1) (compV -23 -1))) #t)
+(test (cmplx0? (cmplx- (compV 9 8) (compV 9 8545))) #f)
+(test (cmplx0? (cmplx+ (compV 2444 1) (compV -23 -1))) #f)
+(test (cmplx0? (compV 0 0)) #t)
+
+;; remove-shadow
+;; This is a function I created that removes a binding from a list of bindings, basically to remove shadowed bindings as to avoid their substitution
+(test (remove-shadow 'x '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y))))) '((y (imaginary 1)) (z (add (id 'x) (id 'y)))))
+(test (remove-shadow 'w '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y))))) '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y)))))
+(test (remove-shadow 'x '((x (real 2)) (x (imaginary 3)) (y (sub (id 'x) (real 1)))))'((y (sub (id 'x) (real 1)))))
+(test (remove-shadow 'x '()) '())
+(test (remove-shadow 'z '((x (real 2)) (y (imaginary 1)) (z (add (real 3) (id 'y))) (z (sub (real 4) (id 'x))))) '((x (real 2)) (y (imaginary 1))))
+
+;; subst
+(test (subst (parse '(+ x y)) 'x (real 1)) (add (real 1) (id 'y)))
+(test (subst (parse '(with [(x 2) (y x)] (+ x y))) 'x (real 1))
+      (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'y))))
+(test (subst (parse '(with [(x 2)] (with [(y z)] (+ x y)))) 'z (imaginary 3))
+      (with (list (cons 'x (real 2)))
+            (with (list (cons 'y (imaginary 3))) 
+                  (add (id 'x) (id 'y)))))
+(test (subst (parse '(+ x y)) 'z (real 1))
+      (add (id 'x) (id 'y)))
+(test (subst (parse '(+ x (+ x y))) 'x (real 1))
+      (add (real 1) (add (real 1) (id 'y))))
