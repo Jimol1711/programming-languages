@@ -45,8 +45,10 @@
 
 ;; eval-or
 (test (eval-or (list (tt))) (ttV))
-(test (eval-or (list (ff))) (ffV)) 
-(test (eval-or (list (tt) (ff))) (ttV))
+(test (eval-or (list (ff))) (ffV))
+
+;; added a value not from the language to test short circuit behaviour
+(test (eval-or (list (ff) (tt) 1)) (ttV))
 (test (eval-or (list (ff) (tt) (tt))) (ttV))
 (test (eval-or (list (ff) (ff) (ff))) (ffV))
 (test (eval-or (list (ff) (ff) (ff) (tt))) (ttV))
@@ -54,7 +56,9 @@
 ;; eval-and
 (test (eval-and (list (tt))) (ttV))
 (test (eval-and (list (ff))) (ffV))
-(test (eval-and (list (tt) (ff))) (ffV)) 
+
+;; added a value not from the language to test short circuit behaviour
+(test (eval-and (list (tt) (ff) 1)) (ffV)) 
 (test (eval-and (list (ff) (tt) (tt))) (ffV))
 (test (eval-and (list (tt) (tt) (tt))) (ttV))
 (test (eval-and (list (tt) (tt) (tt) (ff))) (ffV))

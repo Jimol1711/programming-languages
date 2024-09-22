@@ -273,7 +273,11 @@ Concrete syntax of expressions:
 (deftype CValue (compV r i))
 
 ;; from-CValue :: CValue -> Expr
-(define (from-CValue v) '???)
+(define (from-CValue v)
+  (match v
+    [(compV r 0) (real r)]
+    [(compV 0 i) (imaginary i)]
+    [(compV r i) (add (from-CValue r) (from-CValue i))]))
 
 ;; cmplx+ :: CValue CValue -> CValue
 (define (cmplx+ v1 v2) '???)
