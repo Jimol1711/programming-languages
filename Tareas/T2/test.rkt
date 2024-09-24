@@ -170,14 +170,19 @@
 (test (remove-shadow 'z '((x (real 2)) (y (imaginary 1)) (z (add (real 3) (id 'y))) (z (sub (real 4) (id 'x))))) '((x (real 2)) (y (imaginary 1))))
 
 ;; subst
-(test (subst (parse '(+ x y)) 'x (real 1)) (add (real 1) (id 'y)))
-(test (subst (parse '(with [(x 2) (y x)] (+ x y))) 'x (real 1))
-      (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'y))))
-(test (subst (parse '(with [(x 2)] (with [(y z)] (+ x y)))) 'z (imaginary 3))
-      (with (list (cons 'x (real 2)))
-            (with (list (cons 'y (imaginary 3))) 
-                  (add (id 'x) (id 'y)))))
-(test (subst (parse '(+ x y)) 'z (real 1))
-      (add (id 'x) (id 'y)))
-(test (subst (parse '(+ x (+ x y))) 'x (real 1))
-      (add (real 1) (add (real 1) (id 'y))))
+(test (subst (parse '1) 'x (real 2)) (real 1))
+(test (subst (parse 'x) 'x (real 2)) (real 2))
+(test (subst (parse '(+ 1 x)) 'x (real 2)) (add (real 1) (real 2)))
+(test (subst (parse '(+ x x)) 'x (real 2)) (add (real 2) (real 2)))
+
+;; no shadowing
+(test (subst (parse '(with [(x 2) (y z)] (+ x z))) 'z (real 1)) (with (list (cons 'x (real 2)) (cons 'y (real 1))) (add (id 'x) (real 1))))
+
+;; shadowing
+(test (subst (parse '(with [(x 2) (y x)] (+ x x))) 'x (real 1)) (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'x))))
+
+(test (subst (parse '(with [(x 1) (y (+ x x))] (+ y x))) 'x (real 2)) (with (list (cons 'x (real 1)) (cons 'y (add (id 'x) (id 'x)))) (add (id 'y) (id 'x))))
+(test/exn (subst (parse '(with [(x)] (+ x 1))) 'x (real 2)) "parse: invalid binding format in 'with'")
+
+
+

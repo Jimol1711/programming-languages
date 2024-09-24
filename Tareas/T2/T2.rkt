@@ -268,25 +268,39 @@ Concrete syntax of expressions:
 ;; Performs substitution of an identifier for an expression
 (define (subst in what for)
   (match in
-    [(id x) (if (eq? x what)
-                for
-                (id x))]
-    [(real r) in]
-    [(imaginary i) in]
+    [(real n) (real n)]
+    [(imaginary n) (imaginary n)]
     [(add l r) (add (subst l what for) (subst r what for))]
     [(sub l r) (sub (subst l what for) (subst r what for))]
     [(if0 c t f) (if0 (subst c what for)
                       (subst t what for)
                       (subst f what for))]
+    [(id x) (if (symbol=? x what)
+                for
+                (id x))]
     [(with bindings body)
-     (define (subst-bindings bindings)
+     ;; Substitute in bindings while respecting shadowing
+     (define (subst-bindings bindings shadowed-vars)
        (match bindings
          [(cons (cons x expr) rest)
-          (cons (cons x (subst expr what for))
-                (subst-bindings (remove-shadow x rest)))]
+          ;; If the variable `x` has been shadowed, don't substitute `what` in the current expression.
+          (let ([new-expr (if (symbol=? x what)
+                              expr
+                              (subst expr what for))])
+            ;; Continue processing, adding the current variable to the shadowed list
+            (cons (cons x new-expr)
+                  (subst-bindings rest (cons x shadowed-vars))))]
          ['() '()]))
-     (with (subst-bindings bindings)
-           (subst body what for))]))
+
+     ;; Substitute in the body only if the variable isn't shadowed
+     (define (subst-in-body body shadowed-vars)
+       (if (member what shadowed-vars)
+           body  ;; If the variable is shadowed, skip substitution in the body
+           (subst body what for)))
+
+     ;; Apply substitution in both the bindings and the body, starting with an empty shadowed list
+     (with (subst-bindings bindings '()) 
+           (subst-in-body body (map car bindings)))]))  
 
 ;;----- ;;
 ;; P2.d ;;
