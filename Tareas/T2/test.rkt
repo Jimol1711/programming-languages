@@ -161,14 +161,6 @@
 (test (cmplx0? (cmplx+ (compV 2444 1) (compV -23 -1))) #f)
 (test (cmplx0? (compV 0 0)) #t)
 
-;; remove-shadow
-;; This is a function I created that removes a binding from a list of bindings, basically to remove shadowed bindings as to avoid their substitution
-(test (remove-shadow 'x '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y))))) '((y (imaginary 1)) (z (add (id 'x) (id 'y)))))
-(test (remove-shadow 'w '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y))))) '((x (real 2)) (y (imaginary 1)) (z (add (id 'x) (id 'y)))))
-(test (remove-shadow 'x '((x (real 2)) (x (imaginary 3)) (y (sub (id 'x) (real 1)))))'((y (sub (id 'x) (real 1)))))
-(test (remove-shadow 'x '()) '())
-(test (remove-shadow 'z '((x (real 2)) (y (imaginary 1)) (z (add (real 3) (id 'y))) (z (sub (real 4) (id 'x))))) '((x (real 2)) (y (imaginary 1))))
-
 ;; subst
 (test (subst (parse '1) 'x (real 2)) (real 1))
 (test (subst (parse 'x) 'x (real 2)) (real 2))
@@ -182,7 +174,35 @@
 (test (subst (parse '(with [(x 2) (y x)] (+ x x))) 'x (real 1)) (with (list (cons 'x (real 2)) (cons 'y (id 'x))) (add (id 'x) (id 'x))))
 
 (test (subst (parse '(with [(x 1) (y (+ x x))] (+ y x))) 'x (real 2)) (with (list (cons 'x (real 1)) (cons 'y (add (id 'x) (id 'x)))) (add (id 'y) (id 'x))))
+(test (subst (parse '(with [(x 1) (y (+ z x))] (+ y z))) 'z (real 2)) (with (list (cons 'x (real 1)) (cons 'y (add (real 2) (id 'x)))) (add (id 'y) (real 2))))
+(test (subst (parse '(with [(x 2) (y 4)] (+ x (+ y x)))) 'y (real 2)) (with (list (cons 'x (real 2)) (cons 'y (real 4))) (add (id 'x) (add (id 'y) (id 'x)))))
+
+;; incorrect syntax
 (test/exn (subst (parse '(with [(x)] (+ x 1))) 'x (real 2)) "parse: invalid binding format in 'with'")
 
+;; interp
+;; real & imaginary numbers
+(test (interp (parse '1)) (compV 1 0))
+(test (interp (parse '(5 i))) (compV 0 5))
 
+;; add & sub
+(test (interp (parse '(+ 1 (2 i)))) (compV 1 2))
+(test (interp (parse '(+ 0 (3 i)))) (compV 0 3))
+(test (interp (parse '(+ 5 5))) (compV 10 0))
+(test (interp (parse '(+ (5 i) (5 i)))) (compV 0 10))
+(test (interp (parse '(- 5 (2 i)))) (compV 5 -2))
+(test (interp (parse '(- (2 i) 2))) (compV -2 2))
 
+;; if0
+(test (interp (parse '(if0 0 1 2))) (compV 1 0))
+(test (interp (parse '(if0 5 1 (2 i)))) (compV 0 2))
+(test (interp (parse '(if0 (- 1 1) (if0 0 5 10) 15))) (compV 5 0))
+
+;; with
+(test (interp (parse '(with [(x 1)] (+ x (1 i))))) (compV 1 1))
+(test (interp (parse '(with [(x 1) (y 1)] (+ x y)))) (compV 2 0))
+(test (interp (parse '(with [(x 5) (y x)] (+ x y)))) (compV 10 0))
+(test (interp (parse '(with [(x (3 i)) (y x)] (+ x y)))) (compV 0 6))
+
+;; unbound identifier
+(test/exn (interp (parse 'x)) "unbound identifier x")

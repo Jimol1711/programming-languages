@@ -204,13 +204,15 @@ Concrete syntax of propositions:
 #|
 Abstract syntax of expressions:
 
-<expr> ::=(real <num>)
-        | (imaginary <num>)
-        | (add <expr> <expr>)
-        | (sub <expr> <expr>)
-        | (if0 <expr> <expr> <expr>)
-        | (with [<sym-expr-pair>*] <expr>)
-        | (id <sym>)
+<expr> ::= (real <num>)
+         | (imaginary <num>)
+         | (add <expr> <expr>)
+         | (sub <expr> <expr>)
+         | (if0 <expr> <expr> <expr>)
+         | (with [<def>*] <expr>)
+         | (id <sym>)
+
+<def> ::= (<sym> <expr>)
 |#
 (deftype Expr
   (real r)
@@ -228,12 +230,17 @@ Abstract syntax of expressions:
 #|
 Concrete syntax of expressions:
 
+<defs> ::= <def> | <def> <defs>
+
+<def> ::= (list <sym> <s-expr>)
+
 <s-expr> ::= <num>
            | (<num> i)
            | (+ <s-expr> <s-expr>)
            | (- <s-expr> <s-expr>)
            | (if0 <s-expr> <s-expr> <s-expr>)
-           | ...
+           | (list 'with <defs> <s-expr>)
+           | <sym>
 |#
 
 ;; parse : <s-expr> -> Expr
@@ -245,10 +252,12 @@ Concrete syntax of expressions:
     [(? symbol? x) (id x)]
     [(list '+ l r) (add (parse l) (parse r))]
     [(list '- l r) (sub (parse l) (parse r))]
+    [(list 'if0 c t f)
+     (if0 (parse c) (parse t) (parse f))]
     [(list 'with bindings body)
      (if (empty? bindings)
          (error "parse: 'with' expects at least one definition")
-         (with (map (lambda (binding)
+         (with (map (λ (binding)
                       (match binding
                         [(list (? symbol? x) expr) (cons x (parse expr))]
                         [_ (error "parse: invalid binding format in 'with'")]))
@@ -258,11 +267,6 @@ Concrete syntax of expressions:
 ;;----- ;;
 ;; P2.c ;;
 ;;----- ;;
-
-;; remove-shadow :: Symbol (Listof (Pairof Symbol Expr)) -> (Listof (Pairof Symbol Expr)) 
-;; Auxiliary function to remove a shadowed identifier from bindings
-(define (remove-shadow x bindings)
-  (filter (lambda (b) (not (eq? (car b) x))) bindings))
 
 ;; subst :: Expr Symbol Expr -> Expr
 ;; Performs substitution of an identifier for an expression
@@ -279,28 +283,19 @@ Concrete syntax of expressions:
                 for
                 (id x))]
     [(with bindings body)
-     ;; Substitute in bindings while respecting shadowing
-     (define (subst-bindings bindings shadowed-vars)
+     (define (subst-bindings bindings defined-vars)
        (match bindings
          [(cons (cons x expr) rest)
-          ;; If the variable `x` has been shadowed, don't substitute `what` in the current expression.
-          (let ([new-expr (if (symbol=? x what)
+          (let ([new-expr (if (member what defined-vars)
                               expr
                               (subst expr what for))])
-            ;; Continue processing, adding the current variable to the shadowed list
             (cons (cons x new-expr)
-                  (subst-bindings rest (cons x shadowed-vars))))]
+                  (subst-bindings rest (cons x defined-vars))))]
          ['() '()]))
-
-     ;; Substitute in the body only if the variable isn't shadowed
-     (define (subst-in-body body shadowed-vars)
-       (if (member what shadowed-vars)
-           body  ;; If the variable is shadowed, skip substitution in the body
-           (subst body what for)))
-
-     ;; Apply substitution in both the bindings and the body, starting with an empty shadowed list
-     (with (subst-bindings bindings '()) 
-           (subst-in-body body (map car bindings)))]))  
+     (with (subst-bindings bindings '())
+           (if (member what (map car bindings))
+               body
+               (subst body what for)))])) 
 
 ;;----- ;;
 ;; P2.d ;;
@@ -343,12 +338,37 @@ Concrete syntax of expressions:
 ;; cmplx0? :: CValue -> Boolean
 ;; Returns true if the complex represent by the given CValue is 0, false otherwise
 (define (cmplx0? v)
-  (match (from-CValue v)
-    [(add (real r) (imaginary i)) (and (= r 0) (= i 0))]))
+  (match v
+    [(compV r i) (and (= r 0) (= i 0))]
+    [_ #f]))
 
 ;;----- ;;
 ;; P2.e ;;
 ;;----- ;;
 
 ;; interp : Expr -> CValue
-(define (interp expr) '???)
+;; Reduces an expression Expr to a value of the language CValue
+(define (interp expr)
+  (match expr
+    [(real r) (compV r 0)]
+    [(imaginary i) (compV 0 i)]
+    [(add l r)
+     (cmplx+ (interp l) (interp r))]
+    [(sub l r)
+     (cmplx- (interp l) (interp r))]
+    [(if0 c t f)
+     (if (cmplx0? (interp c))
+         (interp t)
+         (interp f))]
+    [(with bindings body)
+     
+     (define (interp-bindings bindings)
+       (match bindings
+         [(cons (cons x expr) rest)
+          (let ([v (interp expr)])
+            (with ((x v))
+              (interp-bindings rest)))]
+         ['() (interp body)]))
+     
+     (interp-bindings bindings)]
+    [(id x) (error 'interp "unbound identifier ~a" x)]))
