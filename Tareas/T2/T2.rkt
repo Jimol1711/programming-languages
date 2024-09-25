@@ -346,6 +346,25 @@ Concrete syntax of expressions:
 ;; P2.e ;;
 ;;----- ;;
 
+;; Helper function to find the binding in the environment
+(define (find-binding x env)
+  (match env
+    ['() #f] ;; Not found
+    [(cons (cons y value) rest)
+     (if (equal? x y)
+         value
+         (find-binding x rest))]))
+
+;; Helper function to perform substitution over a list of definitions
+(define (subst-bindings body bindings)
+  (define (subst-one body binding)
+    (match binding
+      [(cons x expr) ;; Ensure binding is a pair
+       (subst body x (from-CValue (interp expr)))] ;; Substitute the binding value
+      [else (error 'subst-one "Invalid binding format: ~a" binding)])) ;; Error if binding is not a pair
+  
+  (foldl subst-one body bindings))
+
 ;; interp : Expr -> CValue
 ;; Reduces an expression Expr to a value of the language CValue
 (define (interp expr)
@@ -361,14 +380,9 @@ Concrete syntax of expressions:
          (interp t)
          (interp f))]
     [(with bindings body)
-     
-     (define (interp-bindings bindings)
-       (match bindings
-         [(cons (cons x expr) rest)
-          (let ([v (interp expr)])
-            (with ((x v))
-              (interp-bindings rest)))]
-         ['() (interp body)]))
-     
-     (interp-bindings bindings)]
+     ;; Check the structure of bindings
+     (printf "Bindings: ~a\n" bindings) ;; Debug output
+     ;; Substitute the bindings into the body
+     (let ([new-body (subst-bindings body bindings)])
+       (interp new-body))]
     [(id x) (error 'interp "unbound identifier ~a" x)]))
