@@ -203,6 +203,9 @@
 (test (interp (parse '(with [(x 1) (y 1)] (+ x y)))) (compV 2 0))
 (test (interp (parse '(with [(x 5) (y x)] (+ x y)))) (compV 10 0))
 (test (interp (parse '(with [(x (3 i)) (y x)] (+ x y)))) (compV 0 6))
+(test (interp (parse '(with [(x 3) (y x) (z y)] (+ z (+ x y))))) (compV 9 0))
+(test (interp (parse '(with [(x 3) (y (4 i)) (z y)] (+ z (+ x y))))) (compV 3 8))
+(test (interp (parse '(with [(x 3) (y 2) (z y)] (+ z (+ x y))))) (compV 7 0))
 
 ;; unbound identifier
 (test/exn (interp (parse 'x)) "unbound identifier x")
