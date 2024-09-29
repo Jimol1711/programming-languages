@@ -84,7 +84,7 @@
 (define (lookup [for : symbol] [env : Env]) : Value
   (cond
     [(empty? env) (error 'lookup "name not found")]
-    [(symbol=? for (bind-name (first env))) (bind-val (first env))]
+    [(symbol=? for (bind-name (first env))) (numV (bind-val (first env)))]
     [else (lookup for (rest env))]))
 
 (define (num+ [l : Value] [r : Value]) : Value
@@ -103,13 +103,14 @@
  
 (define (interp [expr : ExprC] [env : Env]) : Value
   (type-case ExprC expr
-    [numC (n) n]
-    [idC (n) (numV (lookup n env))]
+    [numC (n) (numV n)]
+    [idC (n) (lookup n env)]
     [appC (f a)
-      (local ([define funval (interp f env)])
+      (local ([define funval (interp f env)]
+              [define argval (interp a env)])
         (if (funV? funval)
             (interp (funV-body funval)
-                    (extend-env (bind (funV-arg funval) (interp a env))
+                    (extend-env (bind (funV-arg funval) argval)
                                 env))
             (error 'interp "Expected a function, got something else")))]
     [plusC (l r) (num+ (interp l env) (interp r env))]
