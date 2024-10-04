@@ -47,7 +47,7 @@
 (define (contains-n-tree? nt v)
   ( (fold-ntree (λ (x) (equal? x v))
           (λ (x childs) (if (equal? x v)
-                          #t
+                         #t
                          (foldl (λ (x y) (or x y)) #f childs)))) ; No se puede usar apply o directamente or por que or
                                                                  ;; NO es una función, es una MACRO
     nt))

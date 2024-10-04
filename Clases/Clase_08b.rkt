@@ -153,8 +153,8 @@
     
     [(app f-name f-arg)
      (def (fundef _ the-arg the-body) (lookup f-name f-list))
-     (def new-env (extend-env the-arg (interp f-arg f-list env) empty-env))     
-     (interp the-body f-list new-env)]))
+     (def new-env (extend-env the-arg (interp f-arg f-list env) empty-env)) ; Este empty-env es la clave para diferenciar entre alcance dinámico y estático
+     (interp the-body f-list new-env)]))                                    ; Al usar env se tiene alcance dinámico ya que se extiende el ambiente actual
 
 (test (interp (num 1) '() empty-env) 1)
 (test (interp (num 14) '() empty-env) 14)
