@@ -126,7 +126,7 @@
      ;; call-by name: without cache
      ;; (def new-env (extend-env the-arg (exprV e env) closed-env))
      ;; call-by need: with cache
-     (def new-env (extend-env the-arg (exprV e env (box #f)) closed-env))
+     (def new-env (extend-env the-arg (exprV e env (box #f)) closed-env)) ; Cuando hay clausuras, si se crea el new-env en el ambiente de la clausura se tiene scope estático
      (interp the-body new-env)]))
 
 ;; run
