@@ -46,13 +46,16 @@ Abstract syntax of expressions:
 (define (parse s-expr)
   (match s-expr
     [(? number? n) (num n)]
+    [(? symbol? x) (id x)]
     [(list '+ l r) (add (parse l) (parse r))]
     [(list 'nil) (nil)]
-    [(list 'list elems ...) 
+    [(list 'cons l r) (conz (parse l) (parse r))]
+    [(list 'list elems ...)
      (foldr (lambda (e acc) (conz (parse e) acc))
             (nil)
             elems)]
-    [(list '(fun p body)) (void)]))
+    [(list 'fun pattern body) (fun (parse-pattern pattern) (parse body))]
+    [(list f-expr arg-expr) (app (parse f-expr) (parse arg-expr))]))
 
 ;;----- ;;
 ;; P1.c ;;
@@ -94,12 +97,16 @@ Abstract syntax of expressions:
 ;;----- ;;
 
 #|
-<value> ::= ...
+<value> ::= (numV <num>)
+          | (nilV)
+          | (consV <value> <value>
+          | (closureV <symbol> <value> <value>)
 |#
 (deftype Value
   (numV n)
-  ; ...
-  )
+  (nilV)
+  (consV l r)
+  (closureV id body env))
 
 #|
 BEGIN utility definitions
