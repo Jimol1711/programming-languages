@@ -143,7 +143,7 @@
 (define fact5 '{with {fact {fun {n} {if0 n 1 {* n {fact {- n 1}}}}}} {fact 5}})
 
 (test (run fact0) (numV 1))
-;(test (run fact5) (numV 120))
+(test (run fact5) (numV 120))
 
 (let ([fact (box 'dummy)])
   (begin

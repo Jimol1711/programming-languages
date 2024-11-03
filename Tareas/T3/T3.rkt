@@ -15,7 +15,6 @@ En caso que afirmativo, indique con quién y sobre qué ejercicio:
 ;; P1.a, P1.e, P2.a ;;
 ;;------------------;;
 
-
 #|
 Abstract syntax of expressions:
 
@@ -25,7 +24,10 @@ Abstract syntax of expressions:
          | (id <symbol>)
          | (conz <expr> <expr>)
          | (fun <pattern> <expr>)
-         | (app <expr> <expr>) 
+         | (app <expr> <expr>)
+         | (pmatch <expr> <match-clause> ...)
+
+<match-clause> ::= [<pattern> <expr>]
 |#
 (deftype Expr
   (num n)
@@ -34,7 +36,8 @@ Abstract syntax of expressions:
   (id x)
   (conz l r)
   (fun p body)
-  (app f arg))
+  (app f arg)
+  (pmatch expr clauses))
 
 ;;------------------;;
 ;; P1.b, P1.e, P2.b ;;
@@ -42,7 +45,7 @@ Abstract syntax of expressions:
 
 
 ;; parse : s-expr -> Expr
-;; parses a syntax expr int and expression
+;; parses a syntax expr into and expression
 (define (parse s-expr)
   (match s-expr
     [(? number? n) (num n)]
@@ -55,6 +58,16 @@ Abstract syntax of expressions:
             (nil)
             elems)]
     [(list 'fun pattern body) (fun (parse-pattern pattern) (parse body))]
+    [(list 'match expr clauses ...)
+     (if (null? clauses)
+         (error "SyntaxError: match expression must have at least one case")
+         (pmatch (parse expr)
+                 (map (lambda (clause)
+                        (match clause
+                          [(list pat body)
+                           (cons (parse-pattern pat) (parse body))]
+                          [_ (error "SyntaxError: invalid match clause format")]))
+                      clauses)))]
     [(list f-expr arg-expr) (app (parse f-expr) (parse arg-expr))]))
 
 ;;----- ;;
@@ -102,6 +115,7 @@ Abstract syntax of expressions:
           | (consV <value> <value>
           | (closureV <symbol> <value> <value>)
 |#
+;; Datatype to represent a value from the language
 (deftype Value
   (numV n)
   (nilV)
@@ -148,11 +162,9 @@ BEGIN utility definitions
                 [_ (error "TypeError: expected a number")])]
     [_ (error "TypeError: expected a number")]))
 
-
 #|
 END utility definitions
 |#
-
 
 ;;----- ;;
 ;; P1.g ;;
@@ -167,14 +179,90 @@ END utility definitions
   (success v))
 
 ;; generate-substs : Pattern Value -> (Result String (Listof (Symbol * Value)))
-(define (generate-substs p v) '???)
+;; subtitutes bindings on a pattern matching clause
+(define (generate-substs p v)
+  (match (list p v)
+    [(list (numP n) (numV m))
+     (if (= n m)
+         (success '())
+         (failure "MatchError: given number does not match pattern"))]
+    [(list (varP x) val)
+     (success (list (cons x val)))]
+    [(list (nilP) (nilV))
+     (success '())]
+    [(list (conzP p1 p2) (consV v1 v2))
+     (match (generate-substs p1 v1)
+       [(failure e) (failure e)]
+       [(success substs1)
+        (match (generate-substs p2 v2)
+          [(failure e) (failure e)]
+          [(success substs2)
+           (success (append substs1 substs2))])])]
+    [(list (numP _) _) (failure "MatchError: expected a number")]
+    [(list (nilP) _) (failure "MatchError: expected nil")]
+    [(list (conzP _ _) _) (failure "MatchError: expected a cons constructor")]))
 
 ;;------------;;
 ;; P1.h, P2.c ;;
 ;;------------;;
 
 ;; interp : Expr Env -> Value
-(define (interp expr env) '???)
+;; reduces parsed expression to a value from the language
+(define (interp expr env)
+  (match expr
+    [(num n) (numV n)]
+    [(add l r) 
+     (num+ (interp l env) (interp r env))]
+    [(nil) (nilV)]
+    [(id x) (lookup-env x env)]
+    [(conz l r) 
+     (consV (interp l env) (interp r env))]
+    [(fun p body) 
+     (closureV p body env)]
+    [(app f-expr arg-expr)
+     (let* ([f-val (interp f-expr env)]
+            [arg-val (interp arg-expr env)])
+       (match f-val
+         [(closureV p body closure-env)
+          (match (generate-substs p arg-val)
+            [(failure e) (error e)]
+            [(success bindings)
+             (interp body (extend-env* bindings closure-env))])]))]
+    [(pmatch expr clauses)
+     (let ([val (interp expr env)])
+       (define (match-clause clause)
+         (match clause
+           [(cons p body)
+            (match p
+              [(numP n)
+               (if (and (numV? val) (equal? (numV-n val) n))
+                   (interp body env)
+                   #f)]
+              [(nilP)
+               (if (nilV? val)
+                   (interp body env)
+                   #f)]
+              [(varP v)
+               (interp body (extend-env v val env))]
+              [(conzP p1 p2)
+               (if (consV? val)
+                   (match (generate-substs p1 (consV-l val))
+                     [(failure e) #f]
+                     [(success bindings1)
+                      (match (generate-substs p2 (consV-r val))
+                        [(failure e) #f]
+                        [(success bindings2)
+                         (interp body (extend-env* (append bindings1 bindings2) env))])])
+                   #f)]
+              )]))
+       (define (find-match clauses)
+         (if (null? clauses)
+             (error "MatchError: expression does not match any pattern")
+             (let ([result (match-clause (car clauses))])
+               (if result
+                   result
+                   (find-match (cdr clauses))))))
+       (find-match clauses))]))
 
 
 ;;----- ;;
@@ -186,6 +274,13 @@ En función de lo implementado en la pregunta anterior, argumente porqué es út
 generate-subst no lance un error (cuando el valor no calza con el patrón) y, en cambio, retorne
 un mensaje.
 
-R: ...
+R: Porque permite al programador saber el patrón específico que no se está cumpliendo, permitiendo
+manejar los errores "clausula por clausula". Esto es particularmente útil por ejemplo en el caso de
+cons, ya que este requiere matcheos anidados, y tener un mensaje específico a cada patrón permite saber
+si el error es en el constructor cons o es en alguno de sus elementos que buscan matchear con otro
+patrón.
 
+Además, el mensaje que retornaría generate-substs se le daría al error que arroja interp y así se
+puede generalizar esto sin hacer un matching con muchos casos de errores en interp. Luego si se quiere
+agregar un nuevo error simplemente se extiende generate-substs.
 |#
