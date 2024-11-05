@@ -16,18 +16,18 @@ al ser llamadas ejecuten la instrucción, y no antes.
 |#
 
 ;;b)
-(defmac (for <id> in < list > do <body>)
+(defmac (for <id> in <list> do <body>)
   #:keywords in do
-  ( let ( [ result (map (λ (<id>) <body>) <list>)])
+  (let ([result (map (λ (<id>) <body>) <list>)])
      (void)))
 
 ;;c)
-(defmac ( right-to-left f a b)
-  ( let ( [b1 b] [a1 a])
-     ( f a1 b1)))
+(defmac (right-to-left f a b)
+  (let ([b1 b] [a1 a])
+     (f a1 b1)))
 
 ; ; Produce outputs diferentes
-( right-to-left + (begin (print "izq") 3) (begin (print "der") 5))
+(right-to-left + (begin (print "izq") 3) (begin (print "der") 5))
 
 ;;d)
 (define i (box 0))
@@ -41,8 +41,8 @@ al ser llamadas ejecuten la instrucción, y no antes.
 
 ;;cae en un bucle infinito luego de imprimir 0
 ;; (while-def (< (unbox i) 5) (begin (printf "~a" (unbox i))
-;;                               (set-box! i (+ (unbox i) 1))
-;;                               ))
+;;                                (set-box! i (+ (unbox i) 1))
+;;                                ))
 
 (defmac (while-mac cond body)
   (letrec ([iter (λ ()
@@ -82,32 +82,32 @@ que le demos a (DOUBLE ) ya que no se ocupa.
 
 ;;---------------P3-------
 (define profile (make-hash))
-; ; La macro define-profile cuenta cuantas veces es llamada una funcion
-(defmac ( define-profile (fname arg) body ... )
-; ; Llamamos a define internamente
+;; La macro define-profile cuenta cuantas veces es llamada una funcion
+(defmac (define-profile (fname arg) body ...)
+;; Llamamos a define internamente
   (define (fname arg) (begin
-                      ; ; Pero antes de hacer cualquier calculo , aumentamos el contador
-                      ( hash-set! profile 'fname (+ 1 (hash-ref profile 'fname 0)))
-                      body ... )))
+                      ;; Pero antes de hacer cualquier calculo , aumentamos el contador
+                      (hash-set! profile 'fname (+ 1 (hash-ref profile 'fname 0)))
+                       body ...)))
 
-(define-profile ( fact n)
+(define-profile (fact n)
   (if (zero? n)
       1
-      (* n ( fact (- n 1)))))
+      (* n (fact (- n 1)))))
 
 
 (define-profile (even n)
-  ( if (zero? n)
+  (if (zero? n)
        #t
        (odd (- n 1))))
 
 
-( define-profile (odd n)
-   ( if (zero? n)
+(define-profile (odd n)
+   (if (zero? n)
         #f
         (even (- n 1))))
 
 
-(even ( fact 10))
+(even (fact 10))
 (hash-map profile (λ (x y) (printf "~a: ~a~n" x y)))
 
