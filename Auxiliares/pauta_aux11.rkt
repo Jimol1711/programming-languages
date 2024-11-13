@@ -34,7 +34,7 @@
       ))
   )
 ;;c)
-(defmac (--> record field ) (record ‘ field ))
+(defmac (--> record field ) (record ‘ field))
 
 
 ;;P3)
