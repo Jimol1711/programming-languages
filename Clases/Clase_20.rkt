@@ -104,6 +104,24 @@
                               (r -> end)]
                       [end : ]))
 
+(defmac (switch expr
+               [case pred -> result] ...
+               [default -> df-val])
+  #:keywords case ->
+
+  ;; Macro expansion
+  (let ((val expr))  ;; Bind the value of the expression
+    (cond
+     ;; Process all cases
+     ,@(map (lambda (case)
+              (match case
+                     [(list 'case pred -> result)
+                      `(,(list 'if pred) val ,result)]))
+            (filter (lambda (x) (match x [(list 'case _ _)] #t) (else #f)) expr))
+     
+     ;; Handle the default case
+     [(default) df-val])))
+
 
 
 
