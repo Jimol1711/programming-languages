@@ -156,6 +156,7 @@
      (def loc (env-lookup id env))
      (v*s val-val (extend-sto loc val-val val-sto))]
 
+    ; Difference between call-by-value and call-by-reference
     [(app fun-expr arg-expr)
      (def (v*s fun-val fun-sto) (interp fun-expr env sto))
      (match fun-val
