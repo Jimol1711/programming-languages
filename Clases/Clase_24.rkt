@@ -49,8 +49,46 @@
 
 (define p2 (new Point))
 
+; ----- EXTRA GAMBLER CLASS -----
 
+(define Gambler
+  (CLASS ([field savings 0])
+         ([method savings? () (? savings)]
+          [method savings! (n) (! savings n)]
+          [method init (init-sav) (-> self savings! init-sav)]
+          [method inc-money (amount) (-> self savings! (+ (-> self savings?) amount))]
+          [method dec-money (amount) (-> self savings! (- (-> self savings?) amount))]
+          [method gamble (bet cas) (-> cas gamble bet self)])))
 
+(define Casino
+  (CLASS ([field jackpot 0]
+          [field odds 0])
+         (
+          ; getters, setters and init
+          [method jackpot! (j) (! jackpot j)]
+          [method odds! (o) (! odds o)]
+          [method jackpot? () (? jackpot)]
+          [method odds? () (? odds)]
+          [method inc-jackpot (amount) (-> self jackpot! (+ (-> self jackpot?) amount))]
+          [method dec-jackpot (amount) (-> self jackpot! (- (-> self jackpot?) amount))]
+          [method init (jack odds) (begin (-> self jackpot! jack) (-> self odds! odds))]
+
+          ; casino methods
+          [method spin () (equal? (random (-> self odds?)) (- (-> self odds?) 1))]
+          [method payout (bet gam) (begin
+                                         (println (format "You won ~a gazillion dollars!!!" (* bet (-> self odds?))))
+                                         (-> gam inc-money (* bet (-> self odds?)))
+                                         (-> self dec-jackpot (* bet (-> self odds?)))
+                                         )]
+          [method charge (bet gam) (begin
+                                         (println (format "You lost ~a dollars T_T" bet))
+                                         (-> gam dec-money bet)
+                                         (-> self inc-jackpot bet)
+                                         )]
+          [method gamble (bet gam) (if (-> self spin)
+                                           (-> self payout bet gam)
+                                           (-> self charge bet gam))]
+          )))
 
 
 

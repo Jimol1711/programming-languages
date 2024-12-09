@@ -89,7 +89,7 @@
                 (apply (parent current) msg args)))))))) ; difference: if message is not understood, it must send the current receiver along with it's parent
 
 (defmac (-> o m arg ...)
-  (let ([obj o])
+  (let ([obj o]) ; OJO aquí se declara obj para forzar la evaluación de o. Sería incorrecto (o o) porque se evaluaría dos veces
     ((obj obj) 'm arg ...)))
 
 ; CLASS Macro defined on class 24
