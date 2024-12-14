@@ -1,6 +1,6 @@
 # Repository for Programming Languages
 
-Materials and assignments for the Programming Languages (CC4101) course at the FCFM. It is organized into four folders and includes a `.gitignore` file. The course was taught and assignments done mainly in Racket using the DrRacket IDE.
+Materials and assignments for the Programming Languages (CC4101) course at the FCFM. It is organized into four folders and includes a `.gitignore` file. The course was taught and assignments were done mainly in Racket using the DrRacket IDE.
 
 ---
 
